@@ -1,0 +1,75 @@
+---
+title: "Lab2"
+author: "Vitalii Demediuk"
+date: "10/4/2021"
+output: html_document
+---
+
+# Load libraries.
+
+```{r, eval = F}
+library(corrplot)
+library(qgraph)
+```
+
+```{r, include = F}
+library(corrplot)
+library(qgraph)
+```
+
+
+# Load, prepare and clear datasets.
+```{r}
+dataset<-read.csv(file="udemy_courses.csv", header = TRUE)
+
+dataset <- subset(dataset, select = -c(`course_title`, `url`, `published_timestamp`))
+
+dataset$is_paid <- as.factor(dataset$is_paid)
+dataset$level <- as.factor(dataset$level)
+dataset$subject <- as.factor(dataset$subject)
+summary(dataset)
+corr.dataset = dataset[,c(3, 4, 6, 8)]
+```
+
+### Для кількох наборів кількісних даних з одного датасету зобразити матричну діаграму розсіювання.
+```{r}
+pairs(corr.dataset)
+```
+
+### Для них же вивести кореляційну матрицю (карту кореляцій) (цифрами та кружечками/квадратиками) та граф кореляцій (якщо вийде).
+```{r}
+corrplot.mixed(cor(corr.dataset))
+qgraph(cor(corr.dataset), minimum=0.25)
+```
+
+### Для найбільш суттєвих кореляцій порахувати коефіцієнти кореляції Пірсона, Спірмена або Кендала, статистично перевірити їх значущість. Дати трактовку отриманим результатам.
+
+#### Коефіціент Пірсона
+```{r}
+cor(corr.dataset, y=NULL, method = "pearson")
+```
+
+#### Перевірка гіпотези 
+```{r}
+cor.test(corr.dataset[,3], corr.dataset[,4], method = "pearson")
+```
+
+#### Коефіціент Спірмена
+```{r}
+cor(corr.dataset, y=NULL, method = "spearman")
+```
+
+#### Перевірка гіпотези 
+```{r}
+cor.test(corr.dataset[,3], corr.dataset[,4], method = "spearman", exact = FALSE)
+```
+
+#### Коефіціент Кедала
+```{r}
+cor(corr.dataset, y=NULL, method = "kendall")
+```
+
+#### Перевірка гіпотези 
+```{r}
+cor.test(corr.dataset[,3], corr.dataset[,4], method = "kendall", exact = FALSE)
+```
