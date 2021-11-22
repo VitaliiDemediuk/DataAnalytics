@@ -1,0 +1,90 @@
+---
+title: "Lab2"
+author: "Vitalii Demediuk"
+date: "10/4/2021"
+output: html_document
+---
+
+# Load libraries.
+
+```{r, eval = F}
+library(ggplot2)
+library(ggpubr)
+library(dplyr)
+```
+
+```{r, include = F}
+library(ggplot2)
+library(ggpubr)
+library(dplyr)
+```
+
+
+# Load, prepare and clear datasets.
+```{r}
+dataset<-read.csv(file="StudentsPerformance.csv", header = TRUE)
+
+dataset$gender <- as.factor(dataset$gender)
+dataset$race.ethnicity <- as.factor(dataset$race.ethnicity)
+dataset$parental.level.of.education <- as.factor(dataset$parental.level.of.education)
+dataset$lunch <- as.factor(dataset$lunch)
+dataset$test.preparation.course <- as.factor(dataset$test.preparation.course)
+
+dataset$average.score <- (dataset$math.score + dataset$reading.score + dataset$writing.score)/3
+summary(dataset)
+lab.data <- dataset[c("parental.level.of.education", "average.score")]
+```
+
+## Лінійна діаграма
+```{r}
+stripchart(average.score ~ parental.level.of.education, data = lab.data, xlab = "Середня оцінка",
+           ylab ="Рівень освіти батьків", col=c("red", "green", "blue", "purple", "yellow", "green"), 
+           method = "jitter")
+ggplot(lab.data, aes(x=average.score, y=parental.level.of.education, color=parental.level.of.education)) + 
+  geom_jitter(position=position_dodge(0.8)) + stat_summary(fun=mean, geom="point", shape=18,size=3, color="red") +
+  ylab("Рівень освіти батьків") + xlab("Середня оцінка")
+```
+
+## Ящик з вусами
+```{r}
+boxplot(average.score ~ parental.level.of.education, data = lab.data,
+        xlab = "Рівень освіти батьків", ylab = "Середня оцінка",
+        main = "-", col = c("red", "green", "blue", "purple", "yellow", "green"))
+```
+
+## Середні по групам
+```{r}
+aggregate(x = lab.data$average.score, by = list(lab.data$parental.level.of.education), FUN = mean)
+```
+
+## Перевірка нормальності
+
+# Перевірка базових припущень традиційної моделі дисперсійного аналізу
+## Перевірка залишків на нормальність
+```{r}
+mod <- aov(average.score ~ parental.level.of.education, data = lab.data)
+hist(mod$residuals, main = "Гістограма залишків моделі 1", freq = F, col = "green1")
+ggqqplot(mod$residuals, color = "green3")
+shapiro.test(mod$residuals)
+```
+
+## Перевірка однорідністі (гомогенністі) дисперсій змінної по групах незалежного фактора(тест Бартлетта)
+```{r}
+tapply(lab.data$average.score, lab.data$parental.level.of.education, var)
+bartlett.test(lab.data$average.score ~ lab.data$parental.level.of.education)
+```
+
+## Дисперсійний аналіз
+```{r}
+summary(aov(average.score ~ parental.level.of.education, data = lab.data))
+summary(lm(average.score ~ parental.level.of.education, data = lab.data))
+contrasts(lab.data$parental.level.of.education)
+```
+
+## Аналіз контрастів
+```{r}
+c <- c(1, 1, -1, 1, 1, 1)
+contrasts(lab.data$parental.level.of.education) <- cbind(c)
+mod2 <- aov(average.score ~ parental.level.of.education, data = lab.data)
+summary(mod2, split = list(parental.level.of.education = list("A, B, D, E, F vs C"=1)))
+```
