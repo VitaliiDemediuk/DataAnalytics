@@ -1,0 +1,97 @@
+---
+title: "Lab5"
+author: "Vitalii Demediuk"
+output: html_document
+---
+
+# Load libraries.
+
+```{r, eval = F}
+library(TTR)
+library(ggplot2)
+library(ggpubr)
+library(dplyr)
+library(astsa)
+library(forecast)
+library(fUnitRoots)
+```
+
+```{r, include = F}
+library(TTR)
+library(ggplot2)
+library(ggpubr)
+library(dplyr)
+library(astsa)
+library(forecast)
+library(fUnitRoots)
+```
+
+# Load, prepare and clear datasets.
+```{r}
+dataset <- read.csv(file="ElectricProduction.csv", header = TRUE)
+summary(dataset)
+```
+
+## Зчитати дані у формі часового ряду (або взяти готовий датасет в цьому форматі). Зобразити отриманий часовий ряд (з підписами).
+```{r}
+lab.ts = ts(data=dataset$Value, frequency = 12, start=c(1985,3), end=c(2018,1))
+plot(lab.ts, ylab="Виробництво електроенергії", xlab="Місяць")
+```
+
+## Провести згладжування ряду методом рухомого середнього з різним кроком.
+```{r}
+plot(SMA(lab.ts, n=3))
+plot(SMA(lab.ts, n=5))
+plot(SMA(lab.ts, n=9))
+```
+
+## Розбити вихідний часовий ряд на систематичну, періодичну та хаотичну складові.
+```{r}
+dec.lab.ts = decompose(lab.ts)
+plot(dec.lab.ts) 
+```
+
+## Побудувати корелограму та частинну корелограму ЧР.
+```{r}
+acf(lab.ts)
+pacf(lab.ts)
+```
+
+## 6. Вибрати модель, яка адекватно прогнозуватиме даний ЧР. Побудувати прогноз відповідним до моделі ЧР методом експоненційного згладжування (звичайним, подвійним або потрійним – залежно від моделі) та відповідним до ряду методом з групи ARIMA.
+
+### Експоненційне згладжування
+```{r}
+lab.ts.hw <- HoltWinters(lab.ts)
+plot(lab.ts.hw, predict(lab.ts.hw, 36, prediction.interval = T))
+```
+
+### ARIMA
+
+#### Перевірка на стаціонарність(тест Дікі–Фуллера)
+```{r}
+adfTest(lab.ts)
+```
+
+#### return - log трансформація
+```{r}
+lab.ts.t = diff(log(lab.ts))
+plot(lab.ts.t)
+acf(lab.ts.t)
+adfTest(lab.ts.t)
+```
+
+#### отриманий ряд стаціонарний, отже, визначаємо параметри моделі ARIMA. 
+```{r}
+pacf(lab.ts.t)
+ar(lab.ts.t)
+```
+
+```{r}
+sarima(lab.ts.t, p = 12, d = 1, q = 0)
+```
+
+## 7. Побудувати корелограми залишків та інші діаграми, що характеризують розподіл залишків моделі. 
+
+```{r}
+checkresiduals(lab.ts.hw)
+```

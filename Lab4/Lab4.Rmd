@@ -1,7 +1,6 @@
 ---
-title: "Lab2"
+title: "Lab4"
 author: "Vitalii Demediuk"
-date: "10/4/2021"
 output: html_document
 ---
 
