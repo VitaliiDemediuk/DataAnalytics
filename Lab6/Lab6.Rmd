@@ -1,0 +1,134 @@
+---
+title: "Lab5"
+author: "Vitalii Demediuk"
+output: html_document
+---
+
+# Load libraries.
+
+```{r, eval = F}
+library("cluster")
+library("factoextra")
+library("magrittr")
+library(NbClust)
+library(parameters)
+library('see')
+library(fpc)
+library(fossil)
+```
+
+```{r, include = F}
+library("cluster")
+library("factoextra")
+library("magrittr")
+library(NbClust)
+library(parameters)
+library('see')
+library(fpc)
+library(fossil)
+```
+
+# Load, prepare and clear datasets.
+```{r}
+dataset <- read.csv(file="bodyPerformance.csv", header = TRUE)
+summary(dataset)
+lab.data <- dataset[1:500,c(5, 6, 7, 8, 9, 10)] %>%
+  scale()
+```
+
+# Матриця відстаней (неподібності) між елементами
+## Квадрат евклідової відстані
+```{r}
+dist <- get_dist(lab.data, stand = TRUE)
+fviz_dist(dist)
+```
+
+# Дендограми
+#№ Центроїдний метод
+```{R}
+hc1.data <- hclust(dist)
+fviz_dend(hc1.data)
+```
+
+### Розділяємо на кластери(4 кластери)
+```{R}
+fviz_dend(hc1.data, k = 4, # розділяємо на 5 кластери
+          cex = 0.5, # розмір шрифту для назв об'єктів
+          k_colors = c("purple3", "orange1", "olivedrab", "coral3", "red"), # кольори для різних кластерів
+          color_labels_by_k = TRUE, # назви груп також будуть різного кольору
+          rect = TRUE, # прямокутник, що виділяє кожну групу
+          main = "Дендрограма для кластеризації за центроїдним методом")
+```
+
+### Розділяємо на кластери(5 кластери)
+```{R}
+fviz_dend(hc1.data, k = 5, # розділяємо на 5 кластери
+          cex = 0.5, # розмір шрифту для назв об'єктів
+          k_colors = c("purple3", "orange1", "olivedrab", "coral3", "red"), # кольори для різних кластерів
+          color_labels_by_k = TRUE, # назви груп також будуть різного кольору
+          rect = TRUE, # прямокутник, що виділяє кожну групу
+          main = "Дендрограма для кластеризації за центроїдним методом")
+```
+
+### Розділяємо на кластери(6 кластери)
+```{R}
+fviz_dend(hc1.data, k = 6, # розділяємо на 5 кластери
+          cex = 0.5, # розмір шрифту для назв об'єктів
+          k_colors = c("purple3", "orange1", "olivedrab", "coral3", "red", "blue"), # кольори для різних кластерів
+          color_labels_by_k = TRUE, # назви груп також будуть різного кольору
+          rect = TRUE, # прямокутник, що виділяє кожну групу
+          main = "Дендрограма для кластеризації за центроїдним методом")
+```
+
+# Метод Варда
+```{r}
+hc2.data <- hclust(dist, method = "ward.D")
+fviz_dend(hc2.data)
+```
+
+### Розділяємо на кластери (4)
+```{r}
+fviz_dend(hc2.data, k = 4, # розділяємо на 4 кластери
+          cex = 0.5, # розмір шрифту для назв об'єктів
+          k_colors = c("purple3", "orange1", "olivedrab", "coral3"), # кольори для різних кластерів
+          color_labels_by_k = TRUE, # назви груп також будуть різного кольору
+          rect = TRUE, # прямокутник, що виділяє кожну групу
+          main = "Дендрограма для кластеризації за центроїдним методом")
+```
+
+### Розділяємо на кластери (5)
+```{r}
+fviz_dend(hc2.data, k = 5, # розділяємо на 4 кластери
+          cex = 0.5, # розмір шрифту для назв об'єктів
+          k_colors = c("purple3", "orange1", "olivedrab", "coral3", "red"), # кольори для різних кластерів
+          color_labels_by_k = TRUE, # назви груп також будуть різного кольору
+          rect = TRUE, # прямокутник, що виділяє кожну групу
+          main = "Дендрограма для кластеризації за центроїдним методом")
+```
+
+# Метод ліктя
+```{r}
+fviz_nbclust(lab.data, kmeans, method = "wss") +
+  geom_vline(xintercept = 4, linetype = 2) + # додаємо лінію для кращої візуалізації
+  labs(subtitle = "Метод ліктя")
+```
+
+# Метод k-Середніх
+### (K = 4)
+```{r}
+lab.data.kmeans <- cluster_analysis(lab.data, n = 4, method = "kmeans")
+predict(lab.data.kmeans) # вектор номерів кластерів
+plot(lab.data.kmeans)
+```
+### (K = 5)
+```{r}
+lab.data.kmeans <- cluster_analysis(lab.data, n = 5, method = "kmeans")
+predict(lab.data.kmeans) # вектор номерів кластерів
+plot(lab.data.kmeans)
+```
+# Індекс Ранда
+```{r}
+max_stats = eclust(lab.data, "hclust", stand=TRUE, hc_method = "complete")
+ward_stats = eclust(lab.data, "hclust", stand=TRUE, hc_method = "ward.D")
+rand.index(max_stats$cluster, ward_stats$cluster)
+```
